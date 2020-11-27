@@ -23,10 +23,17 @@ namespace hc_diag
                 .CreateLogger();
 
             services
+                .AddSingleton(Log.Logger)
                 .AddRouting()
-                .AddGraphQLServer()
+                .AddGraphQLServer("v1")
+                .UseDefaultPipeline()
+                .UseInstrumentations()
                 .AddQueryType<Query>()
+                .AddApolloTracing()
                 .AddDiagnosticEventListener<GraphQlEventObserver>();
+
+                // below it bombs with ILogger not being registered, which it is, see above, but most likely sp is not the same IServiceProvider
+                //.AddDiagnosticEventListener(sp => new GraphQlEventObserver(sp.GetRequiredService<ILogger>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,12 +46,16 @@ namespace hc_diag
 
             app.UseRouting();
 
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    // By default the GraphQL server is mapped to /graphql
+            //    // This route also provides you with our GraphQL IDE. In order to configure the
+            //    // the GraphQL IDE use endpoints.MapGraphQL().WithToolOptions(...).
+            //    endpoints.MapGraphQL();
+            //});
             app.UseEndpoints(endpoints =>
             {
-                // By default the GraphQL server is mapped to /graphql
-                // This route also provides you with our GraphQL IDE. In order to configure the
-                // the GraphQL IDE use endpoints.MapGraphQL().WithToolOptions(...).
-                endpoints.MapGraphQL();
+                endpoints.MapGraphQL("/api", "v1");
             });
         }
     }
@@ -52,6 +63,12 @@ namespace hc_diag
     public class GraphQlEventObserver : DiagnosticEventListener
     {
         private readonly Stopwatch _stopWatch = new();
+        private ILogger logger;
+
+        //public GraphQlEventObserver(ILogger logger)
+        //{
+        //    this.logger = logger;
+        //}
 
         public override bool EnableResolveFieldValue => false;
 

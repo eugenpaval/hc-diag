@@ -7,7 +7,8 @@
     "hc-diag": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "http://localhost:55450/graphql",
+        "applicationUrl": "http://localhost:55450",
+        "launchUrl": "api",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
